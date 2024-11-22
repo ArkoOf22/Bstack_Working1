@@ -46,13 +46,27 @@ public class FileContentService {
     }
 
     private long initialOffset() throws IOException {
-        long lines=0;
+        long fileLength = randomAccessFile.length();
+        long lines = 0;
+        long offset = fileLength;
 
-        while(randomAccessFile.readLine()!=null)
-            lines++;
+        // Read the file from the end to find the last 10 lines
+        for (long pointer = fileLength - 1; pointer >= 0; pointer--) {
+            randomAccessFile.seek(pointer);
+            int readByte = randomAccessFile.readByte();
+            if (readByte == '\n') {
+                lines++;
+                if (lines == 11) {
+                    offset = pointer + 1;
+                    break;
+                }
+            }
+        }
 
-        if(lines>10)
-            offset=lines-10;
+        // If the file has less than 10 lines, set offset to the beginning
+        if (lines < 10) {
+            offset = 0;
+        }
 
         return offset;
     }
